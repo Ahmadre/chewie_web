@@ -91,7 +91,7 @@ class _ChewiePlayerState extends State<Chewie> {
   Widget build(BuildContext context) {
     // Start fullscreen on landscape
     final Orientation orientation = MediaQuery.of(context).orientation;
-    final bool _isLandscape = orientation == Orientation.landscape;
+    final bool _isLandscape = false;
     // Lock orientation if exit fullscreen button was pressed
     final isAndroid = Theme.of(context).platform == TargetPlatform.android;
     if (isAndroid && leaveFullscreen) {
