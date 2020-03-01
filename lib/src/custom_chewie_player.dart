@@ -220,7 +220,7 @@ class _ChewiePlayerState extends State<Chewie> {
     leaveFullscreen = false;
     final isAndroid = Theme.of(context).platform == TargetPlatform.android;
     final TransitionRoute<Null> route = new PageRouteBuilder<Null>(
-      settings: new RouteSettings(isInitialRoute: false),
+      settings: new RouteSettings(),
       pageBuilder: _fullScreenRoutePageBuilder,
     );
 
