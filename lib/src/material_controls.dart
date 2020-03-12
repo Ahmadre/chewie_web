@@ -373,9 +373,11 @@ class _MaterialControlsState extends State<MaterialControls>
   }
 
   void _updateState() {
-    setState(() {
-      _latestValue = widget.controller.value;
-    });
+    if (mounted) {
+      setState(() {
+        _latestValue = widget.controller.value;
+      });
+    }
   }
 
   Widget _buildProgressBar() {

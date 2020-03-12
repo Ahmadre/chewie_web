@@ -521,8 +521,10 @@ class _CupertinoControlsState extends State<CupertinoControls> {
   }
 
   void _updateState() {
-    setState(() {
-      _latestValue = widget.controller.value;
-    });
+    if (mounted) {
+      setState(() {
+        _latestValue = widget.controller.value;
+      });
+    }
   }
 }
