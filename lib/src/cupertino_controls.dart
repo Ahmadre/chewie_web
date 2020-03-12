@@ -276,8 +276,12 @@ class _CupertinoControlsState extends State<CupertinoControls> {
   }
 
   Widget _buildPosition(Color iconColor) {
-    final position =
-        _latestValue != null ? _latestValue.position : new Duration(seconds: 0);
+    final position = _latestValue != null && _latestValue.position != null
+        ? _latestValue.position
+        : Duration.zero;
+    final duration = _latestValue != null && _latestValue.duration != null
+        ? _latestValue.duration
+        : Duration.zero;
 
     return new Padding(
       padding: new EdgeInsets.only(right: 12.0),
@@ -476,9 +480,15 @@ class _CupertinoControlsState extends State<CupertinoControls> {
 
         if (!widget.controller.value.initialized) {
           widget.controller.initialize().then((_) {
+            if (widget.controller.value.position == widget.controller.value.duration) {
+              widget.controller.seekTo(Duration.zero);
+            }
             widget.controller.play();
           });
         } else {
+          if (widget.controller.value.position == widget.controller.value.duration) {
+            widget.controller.seekTo(Duration.zero);
+          }
           widget.controller.play();
         }
       }

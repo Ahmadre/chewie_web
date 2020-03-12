@@ -183,8 +183,8 @@ class _MaterialControlsState extends State<MaterialControls>
         child: new Center(
           child: new AnimatedOpacity(
             opacity: (_latestValue != null &&
-                    !_latestValue.isPlaying &&
-                    !_dragging) ||
+                        !_latestValue.isPlaying &&
+                        !_dragging) ||
                     !_hideStuff
                 ? 1.0
                 : 0.0,
@@ -197,13 +197,19 @@ class _MaterialControlsState extends State<MaterialControls>
               child: new Padding(
                   padding: new EdgeInsets.only(top: 30.0),
                   child: IconButton(
-                      icon: AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: controller,
-                        semanticLabel: 'Play/Pause',
-                        size: 50.0,
-                        color: Colors.white,
-                      ),
+                      icon: widget.controller.value.position ==
+                              widget.controller.value.duration
+                          ? Icon(Icons.replay,
+                              semanticLabel: 'Replay',
+                              size: 50.0,
+                              color: Colors.white)
+                          : AnimatedIcon(
+                              icon: AnimatedIcons.play_pause,
+                              progress: controller,
+                              semanticLabel: 'Play/Pause',
+                              size: 50.0,
+                              color: Colors.white,
+                            ),
                       onPressed: () {
                         _playPause();
                       })),
@@ -251,8 +257,6 @@ class _MaterialControlsState extends State<MaterialControls>
       ),
     );
   }
-
-  
 
   GestureDetector _buildPlayPause(VideoPlayerController controller) {
     return new GestureDetector(
@@ -339,11 +343,19 @@ class _MaterialControlsState extends State<MaterialControls>
 
         if (!widget.controller.value.initialized) {
           widget.controller.initialize().then((_) {
+            if (widget.controller.value.position ==
+                widget.controller.value.duration) {
+              widget.controller.seekTo(Duration.zero);
+            }
             controller.forward();
             _hideStuff = true;
             widget.controller.play();
           });
         } else {
+          if (widget.controller.value.position ==
+              widget.controller.value.duration) {
+            widget.controller.seekTo(Duration.zero);
+          }
           controller.forward();
           _hideStuff = true;
           widget.controller.play();
