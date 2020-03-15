@@ -7,6 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 
+typedef Widget ChewieRoutePageBuilder(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    _ChewieControllerProvider controllerProvider);
+
 /// A Video Player with Material and Cupertino skins.
 ///
 /// `video_player` is pretty low level. Chewie wraps it in a friendly skin to
@@ -53,6 +59,14 @@ class Chewie extends StatefulWidget {
   /// The placeholder is displayed underneath the Video before it is initialized
   /// or played.
   final Widget placeholder;
+
+  static VideoPlayerController of(BuildContext context) {
+    final chewieControllerProvider =
+        context.inheritFromWidgetOfExactType(_ChewieControllerProvider)
+            as _ChewieControllerProvider;
+
+    return chewieControllerProvider.controller;
+  }
 
   Chewie(
     this.controller, {
@@ -142,25 +156,29 @@ class _ChewiePlayerState extends State<Chewie> {
   }
 
   Widget _buildFullScreenVideo(
-      BuildContext context, Animation<double> animation) {
+      BuildContext context,
+      Animation<double> animation,
+      _ChewieControllerProvider controllerProvider) {
     videoContext = context;
     return new Scaffold(
       resizeToAvoidBottomPadding: false,
       body: new Container(
-        alignment: Alignment.center,
-        color: Colors.black,
-        child: new PlayerWithControls(
-          controller: widget.controller,
-          onExpandCollapse: () {
-            Navigator.of(context).pop();
-            leaveFullscreen = true;
-          },
-          aspectRatio: widget.aspectRatio ?? _calculateAspectRatio(context),
-          fullScreen: true,
-          cupertinoProgressColors: widget.cupertinoProgressColors,
-          materialProgressColors: widget.materialProgressColors,
-        ),
-      ),
+          alignment: Alignment.center,
+          color: Colors.black,
+          child: controllerProvider),
+    );
+  }
+
+  AnimatedWidget _defaultRoutePageBuilder(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      _ChewieControllerProvider controllerProvider) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (BuildContext context, Widget child) {
+        return _buildFullScreenVideo(context, animation, controllerProvider);
+      },
     );
   }
 
@@ -169,12 +187,23 @@ class _ChewiePlayerState extends State<Chewie> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    return new AnimatedBuilder(
-      animation: animation,
-      builder: (BuildContext context, Widget child) {
-        return _buildFullScreenVideo(context, animation);
-      },
+    var controllerProvider = _ChewieControllerProvider(
+      controller: widget.controller,
+      child: new PlayerWithControls(
+        controller: widget.controller,
+        onExpandCollapse: () {
+          Navigator.of(context).pop();
+          leaveFullscreen = true;
+        },
+        aspectRatio: widget.aspectRatio ?? _calculateAspectRatio(context),
+        fullScreen: true,
+        cupertinoProgressColors: widget.cupertinoProgressColors,
+        materialProgressColors: widget.materialProgressColors,
+      ),
     );
+
+    return _defaultRoutePageBuilder(
+        context, animation, secondaryAnimation, controllerProvider);
   }
 
   Future _initialize() async {
@@ -236,7 +265,7 @@ class _ChewiePlayerState extends State<Chewie> {
 
     widget.beforeFullScreen();
 
-    await Navigator.of(context).push(route);
+    await Navigator.of(context, rootNavigator: true).push(route);
 
     widget.afterFullScreen();
 
@@ -256,4 +285,20 @@ class _ChewiePlayerState extends State<Chewie> {
 
     return width > height ? width / height : height / width;
   }
+}
+
+class _ChewieControllerProvider extends InheritedWidget {
+  const _ChewieControllerProvider({
+    Key key,
+    @required this.controller,
+    @required Widget child,
+  })  : assert(controller != null),
+        assert(child != null),
+        super(key: key, child: child);
+
+  final VideoPlayerController controller;
+
+  @override
+  bool updateShouldNotify(_ChewieControllerProvider old) =>
+      controller != old.controller;
 }
